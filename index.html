@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="https://upload.wikimedia.org/wikipedia/commons/6/6c/Star_Wars_Logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Galactic Wisdom</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              cinzel: ['Cinzel', 'serif'],
+              montserrat: ['Montserrat', 'sans-serif'],
+            },
+            colors: {
+              'sw-yellow': '#FFE81F',
+              'sw-black': '#000000',
+              'saber-blue': '#2E67F8',
+              'saber-red': '#EB212E',
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+      body {
+        background-color: #000;
+        overflow: hidden;
+      }
+      /* Custom Animations */
+      .fade-container {
+        transition: all 0.7s ease-in-out;
+      }
+      .fading-out {
+        opacity: 0;
+        transform: scale(0.95);
+        filter: blur(4px);
+      }
+      .fading-in {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+      }
+      
+      /* Glow Classes */
+      .glow-sith { box-shadow: 0 0 20px #EB212E; border-color: #EB212E; }
+      .glow-jedi { box-shadow: 0 0 20px #2E67F8; border-color: #2E67F8; }
+      .glow-neutral { box-shadow: 0 0 20px #FFE81F; border-color: #FFE81F; }
+      
+      .text-glow-sith { color: #f87171; }
+      .group:hover .text-glow-sith { color: #fee2e2; }
+      
+      .text-glow-jedi { color: #60a5fa; }
+      .group:hover .text-glow-jedi { color: #dbeafe; }
+      
+      .text-glow-neutral { color: #facc15; }
+      .group:hover .text-glow-neutral { color: #fef9c3; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0"
+  }
+}
+</script>
+</head>
+<body>
+
+    <!-- Canvas Background -->
+    <canvas id="starfield" class="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none"></canvas>
+    
+    <!-- Cinematic Vignette -->
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)] pointer-events-none"></div>
+
+    <!-- Sound Toggle Button -->
+    <button id="mute-btn" class="fixed top-6 right-6 z-50 text-gray-500 hover:text-sw-yellow transition-colors duration-300 p-2 rounded-full border border-transparent hover:border-gray-800 bg-black/30 backdrop-blur-sm" aria-label="Toggle Sound">
+        <!-- Icons injected via JS -->
+        <span id="icon-container"></span>
+    </button>
+
+    <!-- Main Content -->
+    <div class="relative z-10 min-h-screen w-full flex flex-col items-center justify-center p-4 selection:bg-sw-yellow selection:text-black">
+        
+        <!-- Quote Area -->
+        <div id="quote-container" class="fade-container fading-in max-w-4xl w-full px-6 md:px-12 py-10 text-center">
+            <div class="mb-8">
+                <h1 id="quote-text" class="font-cinzel text-3xl md:text-5xl lg:text-6xl text-white leading-tight tracking-wide drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]">
+                    <!-- Quote goes here -->
+                </h1>
+            </div>
+            
+            <div class="flex flex-col items-center justify-center space-y-2 mt-8">
+                <div class="h-px w-24 bg-sw-yellow opacity-60 mb-4"></div>
+                <p id="quote-char" class="font-montserrat text-sw-yellow text-xl md:text-2xl font-bold tracking-widest uppercase">
+                    <!-- Character -->
+                </p>
+                <p id="quote-source" class="font-montserrat text-gray-400 text-sm md:text-base italic tracking-wider">
+                    <!-- Source -->
+                </p>
+            </div>
+        </div>
+
+        <!-- Button Area -->
+        <div id="btn-container" class="mt-16 transition-opacity duration-700">
+            <button id="generate-btn" class="group relative px-8 py-4 bg-transparent border-2 rounded-lg font-cinzel text-lg md:text-xl font-bold tracking-widest uppercase transition-all duration-300 ease-out border-gray-600 shadow-none">
+                
+                <span id="btn-content" class="flex items-center gap-3 transition-colors duration-300 text-gray-400">
+                    <svg class="w-5 h-5 btn-sparkle" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                    <span>New Quote</span>
+                    <svg class="w-5 h-5 btn-sparkle" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                </span>
+
+                <!-- Subtle reflection -->
+                <div class="absolute inset-0 bg-white opacity-0 transition-opacity duration-300 rounded-md group-hover:opacity-5"></div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="fixed bottom-6 w-full text-center text-gray-600 font-montserrat text-xs tracking-widest uppercase opacity-60 pointer-events-none">
+        Press Spacebar for Wisdom
+    </footer>
+
+    <script>
+        // --- DATA ---
+        const QUOTES = [
+            { id: 1, text: "Do. Or do not. There is no try.", character: "Yoda", source: "The Empire Strikes Back", faction: "jedi" },
+            { id: 2, text: "I am your father.", character: "Darth Vader", source: "The Empire Strikes Back", faction: "sith" },
+            { id: 3, text: "The Force will be with you. Always.", character: "Obi-Wan Kenobi", source: "A New Hope", faction: "jedi" },
+            { id: 4, text: "Never tell me the odds!", character: "Han Solo", source: "The Empire Strikes Back", faction: "neutral" },
+            { id: 5, text: "Fear is the path to the dark side. Fear leads to anger. Anger leads to hate. Hate leads to suffering.", character: "Yoda", source: "The Phantom Menace", faction: "jedi" },
+            { id: 6, text: "I find your lack of faith disturbing.", character: "Darth Vader", source: "A New Hope", faction: "sith" },
+            { id: 7, text: "It's a trap!", character: "Admiral Ackbar", source: "Return of the Jedi", faction: "neutral" },
+            { id: 8, text: "So this is how liberty dies... with thunderous applause.", character: "Padmé Amidala", source: "Revenge of the Sith", faction: "neutral" },
+            { id: 9, text: "Your focus determines your reality.", character: "Qui-Gon Jinn", source: "The Phantom Menace", faction: "jedi" },
+            { id: 10, text: "Chewie, we're home.", character: "Han Solo", source: "The Force Awakens", faction: "neutral" },
+            { id: 11, text: "I am one with the Force and the Force is with me.", character: "Chirrut Îmwe", source: "Rogue One", faction: "jedi" },
+            { id: 12, text: "This is the way.", character: "The Mandalorian", source: "The Mandalorian", faction: "neutral" },
+            { id: 13, text: "Hello there.", character: "Obi-Wan Kenobi", source: "Revenge of the Sith", faction: "jedi" },
+            { id: 14, text: "Power! Unlimited power!", character: "Darth Sidious", source: "Revenge of the Sith", faction: "sith" },
+            { id: 15, text: "Help me, Obi-Wan Kenobi. You're my only hope.", character: "Princess Leia", source: "A New Hope", faction: "neutral" },
+            { id: 16, text: "Let the past die. Kill it if you have to.", character: "Kylo Ren", source: "The Last Jedi", faction: "sith" },
+            { id: 17, text: "Rebellions are built on hope.", character: "Jyn Erso", source: "Rogue One", faction: "neutral" },
+            { id: 18, text: "The ability to speak does not make you intelligent.", character: "Qui-Gon Jinn", source: "The Phantom Menace", faction: "jedi" },
+            { id: 19, text: "I know.", character: "Han Solo", source: "The Empire Strikes Back", faction: "neutral" },
+            { id: 20, text: "Be careful not to choke on your aspirations, Director.", character: "Darth Vader", source: "Rogue One", faction: "sith" },
+            { id: 21, text: "In my experience there is no such thing as luck.", character: "Obi-Wan Kenobi", source: "A New Hope", faction: "jedi" },
+            { id: 22, text: "He is as clumsy as he is stupid.", character: "Darth Vader", source: "The Empire Strikes Back", faction: "sith" }
+        ];
+
+        // --- SOUND ENGINE ---
+        class SoundController {
+            constructor() {
+                this.ctx = null;
+                this.masterGain = null;
+                try {
+                    this.isMuted = localStorage.getItem('gw-muted') === 'true';
+                } catch(e) { this.isMuted = false; }
+            }
+
+            initContext() {
+                if (!this.ctx) {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContextClass();
+                    this.masterGain = this.ctx.createGain();
+                    this.masterGain.connect(this.ctx.destination);
+                    this.updateMasterVolume();
+                } else if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            updateMasterVolume() {
+                if (this.masterGain && this.ctx) {
+                    const now = this.ctx.currentTime;
+                    this.masterGain.gain.cancelScheduledValues(now);
+                    this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, now);
+                    this.masterGain.gain.linearRampToValueAtTime(this.isMuted ? 0 : 0.2, now + 0.1);
+                }
+            }
+
+            toggleMute() {
+                this.isMuted = !this.isMuted;
+                localStorage.setItem('gw-muted', String(this.isMuted));
+                if (!this.ctx) this.initContext();
+                this.updateMasterVolume();
+                return this.isMuted;
+            }
+
+            playHover() {
+                this.initContext();
+                if (this.isMuted || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(70, t);
+                osc.frequency.linearRampToValueAtTime(60, t + 0.2);
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.1, t + 0.05);
+                gain.gain.linearRampToValueAtTime(0, t + 0.2);
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start(t);
+                osc.stop(t + 0.25);
+            }
+
+            playClick() {
+                this.initContext();
+                if (this.isMuted || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(80, t);
+                osc.frequency.exponentialRampToValueAtTime(800, t + 0.15);
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.15, t + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start(t);
+                osc.stop(t + 0.3);
+            }
+
+            playReveal() {
+                this.initContext();
+                if (this.isMuted || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const frequencies = [220, 329.63, 440];
+                frequencies.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const start = t + (i * 0.05);
+                    gain.gain.setValueAtTime(0, start);
+                    gain.gain.linearRampToValueAtTime(0.05, start + 0.4);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 2.0);
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start(start);
+                    osc.stop(start + 2.5);
+                });
+            }
+        }
+        const soundManager = new SoundController();
+
+        // --- STARFIELD ANIMATION ---
+        const canvas = document.getElementById('starfield');
+        const ctx = canvas.getContext('2d');
+        const numStars = 400;
+        let stars = [];
+
+        function initStars() {
+            stars = [];
+            for (let i = 0; i < numStars; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    z: Math.random() * 2 + 0.5,
+                    size: Math.random() * 1.5
+                });
+            }
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initStars();
+        }
+
+        function animateStars() {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#FFFFFF';
+            
+            stars.forEach(star => {
+                star.y += star.z * 0.2;
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+                ctx.globalAlpha = Math.min(star.z * 0.4, 1);
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            requestAnimationFrame(animateStars);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        animateStars();
+
+        // --- APP LOGIC ---
+        let currentQuote = null;
+        let isFading = false;
+        
+        // DOM Elements
+        const quoteContainer = document.getElementById('quote-container');
+        const quoteTextEl = document.getElementById('quote-text');
+        const quoteCharEl = document.getElementById('quote-char');
+        const quoteSourceEl = document.getElementById('quote-source');
+        const generateBtn = document.getElementById('generate-btn');
+        const btnContent = document.getElementById('btn-content');
+        const btnContainer = document.getElementById('btn-container');
+        const muteBtn = document.getElementById('mute-btn');
+        const iconContainer = document.getElementById('icon-container');
+
+        // SVG Icons
+        const iconVolume = `<svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`;
+        const iconMute = `<svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" x2="17" y1="9" y2="15"/><line x1="17" x2="23" y1="9" y2="15"/></svg>`;
+
+        function updateMuteIcon() {
+            iconContainer.innerHTML = soundManager.isMuted ? iconMute : iconVolume;
+            muteBtn.setAttribute('aria-label', soundManager.isMuted ? "Unmute sound" : "Mute sound");
+        }
+
+        function setButtonVisuals(faction) {
+            // Reset base styles
+            generateBtn.className = "group relative px-8 py-4 bg-transparent border-2 rounded-lg font-cinzel text-lg md:text-xl font-bold tracking-widest uppercase transition-all duration-300 ease-out shadow-none border-gray-600";
+            btnContent.className = "flex items-center gap-3 transition-colors duration-300 text-gray-400"; // Default
+            
+            // We use JS to set the hover class listener because Tailwind peer/group logic 
+            // is complex to toggle dynamically with inline strings purely via classList
+            
+            // Instead, we will handle hover visual logic via JS event listeners defined below
+            // This function just sets the faction "theme" for the logic to use
+            generateBtn.dataset.faction = faction;
+        }
+
+        function updateQuoteUI(quote) {
+            quoteTextEl.textContent = `"${quote.text}"`;
+            quoteCharEl.textContent = quote.character;
+            quoteSourceEl.textContent = quote.source;
+            setButtonVisuals(quote.faction);
+        }
+
+        function generateQuote() {
+            if (isFading) return;
+            
+            soundManager.playClick();
+            isFading = true;
+            
+            // Fade Out
+            quoteContainer.classList.remove('fading-in');
+            quoteContainer.classList.add('fading-out');
+            btnContainer.classList.add('opacity-50');
+
+            setTimeout(() => {
+                // Select new quote
+                let newIndex;
+                do {
+                    newIndex = Math.floor(Math.random() * QUOTES.length);
+                } while (currentQuote && QUOTES[newIndex].id === currentQuote.id);
+                
+                currentQuote = QUOTES[newIndex];
+                updateQuoteUI(currentQuote);
+                
+                // Fade In
+                quoteContainer.classList.remove('fading-out');
+                quoteContainer.classList.add('fading-in');
+                btnContainer.classList.remove('opacity-50');
+                
+                isFading = false;
+                setTimeout(() => soundManager.playReveal(), 100);
+                
+            }, 600);
+        }
+
+        // --- EVENT LISTENERS ---
+
+        // Initialize
+        currentQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+        updateQuoteUI(currentQuote);
+        updateMuteIcon();
+
+        // Button Interactions
+        generateBtn.addEventListener('click', generateQuote);
+        
+        generateBtn.addEventListener('mouseenter', () => {
+            soundManager.playHover();
+            const faction = generateBtn.dataset.faction;
+            const sparkles = document.querySelectorAll('.btn-sparkle');
+            
+            // Add Glow
+            if (faction === 'sith') {
+                generateBtn.classList.add('glow-sith');
+                btnContent.classList.remove('text-gray-400');
+                btnContent.classList.add('text-glow-sith');
+                sparkles.forEach(s => s.classList.add('animate-pulse'));
+            } else if (faction === 'jedi') {
+                generateBtn.classList.add('glow-jedi');
+                btnContent.classList.remove('text-gray-400');
+                btnContent.classList.add('text-glow-jedi');
+                sparkles.forEach(s => s.classList.add('animate-pulse'));
+            } else {
+                generateBtn.classList.add('glow-neutral');
+                btnContent.classList.remove('text-gray-400');
+                btnContent.classList.add('text-glow-neutral');
+                sparkles.forEach(s => s.classList.add('animate-pulse'));
+            }
+        });
+
+        generateBtn.addEventListener('mouseleave', () => {
+            // Remove Glow
+            generateBtn.classList.remove('glow-sith', 'glow-jedi', 'glow-neutral');
+            btnContent.classList.remove('text-glow-sith', 'text-glow-jedi', 'text-glow-neutral');
+            btnContent.classList.add('text-gray-400');
+            const sparkles = document.querySelectorAll('.btn-sparkle');
+            sparkles.forEach(s => s.classList.remove('animate-pulse'));
+        });
+
+        // Mute Toggle
+        muteBtn.addEventListener('click', () => {
+            soundManager.toggleMute();
+            updateMuteIcon();
+        });
+
+        // Keyboard
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                generateQuote();
+            }
+        });
+    </script>
+</body>
+</html>
